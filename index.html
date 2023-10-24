@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <title>WebGL-Study</title>
+  </head>
+  <body>
+    <canvas id="game-surface" width="800" height="600">
+      Your browser does not support HTML5
+    </canvas>
+    <br />
+    <i>Demo is above this text</i>
+    <script id="vertex-shader-2d" type="notjs">
+      precision mediump float;
+      attribute vec2 vertPosition;
+      void main()
+      {
+        gl_Position = vec4(vertPosition, 0.0, 1.0);
+      }
+    </script>
+    <script id="fragment-shader-2d" type="notjs">
+      precision mediump float;
+      void main()
+      {
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+      }
+    </script>
+    <script src="app.js"></script>
+  </body>
+</html>
