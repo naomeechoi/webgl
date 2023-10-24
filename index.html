@@ -10,17 +10,25 @@
     <i>Demo is above this text</i>
     <script id="vertex-shader-2d" type="notjs">
       precision mediump float;
-      attribute vec2 vertPosition;
+
+      attribute vec4 vertPosition;
+      attribute vec3 vertColor;
+      varying vec3 fragColor;
+
       void main()
       {
-        gl_Position = vec4(vertPosition, 0.0, 1.0);
+        fragColor = vertColor;
+        gl_Position = vertPosition;
       }
     </script>
     <script id="fragment-shader-2d" type="notjs">
       precision mediump float;
+
+      varying vec3 fragColor;
+
       void main()
       {
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        gl_FragColor = vec4(fragColor, 1.0);
       }
     </script>
     <script src="app.js"></script>
