@@ -58,13 +58,20 @@ window.onload = function () {
     gl.STATIC_DRAW
   );
 
-  // 정dd
+  // make 'vertPosition' work
   var positionAttributeLocation = gl.getAttribLocation(program, "vertPosition");
   var vertSize = 2;
   var type = gl.FLOAT;
   var normalize = gl.FALSE;
   var stride = 5 * Float32Array.BYTES_PER_ELEMENT;
   var vertOffset = 0;
+
+  // This method binds the buffer currently bound to gl.ARRAY_BUFFER
+  // to a generic vertex attribute of the current vertex buffer object
+  // and specifies its layout.
+  // vertexAttribPointer 함수는 gl.ARRAY_BUFFER에 결속되어 있는
+  // 버퍼를 쉐이더의 'vertPosition'와 묶고
+  // 그 레이아웃(어떻게 묶을 것인지 데이터 타입, 한 덩어리의 데이터의 크기, 오프셋 등)을 정의한다.
   gl.vertexAttribPointer(
     positionAttributeLocation,
     vertSize,
@@ -75,7 +82,7 @@ window.onload = function () {
   );
   gl.enableVertexAttribArray(positionAttributeLocation);
 
-  // 정
+  // make 'vertColor' work
   var colorAttributeLocation = gl.getAttribLocation(program, "vertColor");
   var colorSize = 3;
   var colorOffset = 2 * Float32Array.BYTES_PER_ELEMENT;
@@ -89,6 +96,7 @@ window.onload = function () {
   );
   gl.enableVertexAttribArray(colorAttributeLocation);
 
+  // use program and draw
   gl.useProgram(program);
   var primitiveType = gl.TRIANGLES;
   var offset = 0;
