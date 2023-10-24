@@ -58,7 +58,7 @@ window.onload = function () {
     gl.STATIC_DRAW
   );
 
-  // 정
+  // 정dd
   var positionAttributeLocation = gl.getAttribLocation(program, "vertPosition");
   var vertSize = 2;
   var type = gl.FLOAT;
