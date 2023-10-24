@@ -27,7 +27,6 @@ window.onload = function () {
 };
 
 function createShader(gl, type, source) {
-  //this is test
   var shader = gl.createShader(type);
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
