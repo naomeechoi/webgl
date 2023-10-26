@@ -29,24 +29,12 @@ window.onload = function () {
   );
 
   // make program, 프로그램 만들기
-  var program = gl.createProgram();
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    console.error("ERROR linking program", gl.getProgramInfoLog(program));
-    return;
-  }
-
-  gl.validateProgram(program);
-  if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
-    console.error("ERROR validating program", gl.getProgramInfoLog(program));
-  }
+  var program = createProgram(gl, vertexShader, fragmentShader);
 
   // triangle vertex positions, 삼각형 점의 위치
   var trianglePositions = [
-    0.0, 0.5, 1.0, 1.0, 0.0, -0.5, -0.5, 0.0, 1.0, 1.0, 0.5, -0.5, 0.0, 1.0,
-    0.0,
+    -0.5, 0.0, 1.0, 1.0, 0.0, 0.5, 0.0, 0.0, 1.0, 1.0, 0.5, 0.5, 0.0, 1.0, 0.0,
+    0.5, 0.5, 1.0, 1.0, 0.0, -0.5, 0.5, 0.0, 1.0, 1.0, -0.5, 0.0, 0.0, 1.0, 0.0,
   ];
 
   // create and bind buffer, and add buffer data, 버퍼 생성 바인드 및 데이터 구성
@@ -59,7 +47,7 @@ window.onload = function () {
   );
 
   // make 'vertPosition' work
-  var positionAttributeLocation = gl.getAttribLocation(program, "vertPosition");
+  var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
   var vertSize = 2;
   var type = gl.FLOAT;
   var normalize = gl.FALSE;
@@ -83,7 +71,7 @@ window.onload = function () {
   gl.enableVertexAttribArray(positionAttributeLocation);
 
   // make 'vertColor' work
-  var colorAttributeLocation = gl.getAttribLocation(program, "vertColor");
+  var colorAttributeLocation = gl.getAttribLocation(program, "v_color");
   var colorSize = 3;
   var colorOffset = 2 * Float32Array.BYTES_PER_ELEMENT;
   gl.vertexAttribPointer(
@@ -96,12 +84,24 @@ window.onload = function () {
   );
   gl.enableVertexAttribArray(colorAttributeLocation);
 
-  // use program and draw
-  gl.useProgram(program);
-  var primitiveType = gl.TRIANGLES;
-  var offset = 0;
-  var count = 3;
-  gl.drawArrays(primitiveType, offset, count);
+  // compute the matrix
+  // 캔버스 크기를 투영한 행렬을 가지고
+  // 위치 * 회전 * 크기 변환
+  var matrixLocation = gl.getUniformLocation(program, "u_matrix");
+  var matrix = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
+  matrix = m3.translate(
+    matrix,
+    gl.canvas.clientWidth / 2,
+    gl.canvas.clientHeight / 2 - gl.canvas.clientHeight / 8
+  );
+  console.log(gl.canvas.clientHeight / 2);
+  matrix = m3.rotate(matrix, 0);
+  matrix = m3.scale(matrix, 300, 300);
+
+  gl.uniformMatrix3fv(matrixLocation, false, matrix);
+
+  // draw
+  draw(gl);
 };
 
 function createShader(gl, type, source) {
@@ -116,4 +116,32 @@ function createShader(gl, type, source) {
 
   console.log(gl.getShaderInfoLog(shader));
   gl.deleteShader(shader);
+}
+
+function createProgram(gl, vertexShader, fragmentShader) {
+  var program = gl.createProgram();
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    console.error("ERROR linking program", gl.getProgramInfoLog(program));
+    return;
+  }
+
+  gl.validateProgram(program);
+  if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
+    console.error("ERROR validating program", gl.getProgramInfoLog(program));
+    return;
+  }
+
+  gl.useProgram(program);
+  return program;
+}
+
+function draw(gl) {
+  // draw
+  var primitiveType = gl.TRIANGLES;
+  var offset = 0;
+  var count = 6;
+  gl.drawArrays(primitiveType, offset, count);
 }
