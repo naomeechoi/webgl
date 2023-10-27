@@ -15,7 +15,7 @@ window.onload = function () {
   }
 
   // draw background, 배경그리기
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearColor(Math.random(), Math.random(), Math.random(), 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // bring glsl text source, glsl 텍스트 소스 가져오기
@@ -38,39 +38,22 @@ window.onload = function () {
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   // triangle vertex positions, 삼각형 점의 위치
 
-  const indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  const indices = [
-    0,
-    1,
-    2, // first triangle
-    2,
-    1,
-    3, // second triangle
-  ];
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array(indices),
-    gl.STATIC_DRAW
-  );
-
   // look up locations
   var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
   var matrixLocation = gl.getUniformLocation(program, "u_matrix");
   var colorUniformLocation = gl.getUniformLocation(program, "u_color");
 
+  // This method binds the buffer currently bound to gl.ARRAY_BUFFER
+  // to a generic vertex attribute of the current vertex buffer object
+  // and specifies its layout.
+  // vertexAttribPointer 함수는 gl.ARRAY_BUFFER에 결속되어 있는
+  // 버퍼를 쉐이더의 'a_position'과 묶고
+  // 그 레이아웃(어떻게 묶을 것인지 데이터 타입, 한 덩어리의 데이터의 크기, 오프셋 등)을 정의한다.
   var vertSize = 2;
   var type = gl.FLOAT;
   var normalize = gl.FALSE;
   var stride = 0;
   var vertOffset = 0;
-
-  // This method binds the buffer currently bound to gl.ARRAY_BUFFER
-  // to a generic vertex attribute of the current vertex buffer object
-  // and specifies its layout.
-  // vertexAttribPointer 함수는 gl.ARRAY_BUFFER에 결속되어 있는
-  // 버퍼를 쉐이더의 'vertPosition'와 묶고
-  // 그 레이아웃(어떻게 묶을 것인지 데이터 타입, 한 덩어리의 데이터의 크기, 오프셋 등)을 정의한다.
   gl.vertexAttribPointer(
     positionAttributeLocation,
     vertSize,
@@ -95,7 +78,8 @@ window.onload = function () {
 
   gl.uniformMatrix3fv(matrixLocation, false, matrix);
 
-  for (var i = 0; i < getRandomArbitrary(100, 500); i++) {
+  for (var i = 0; i < getRandomArbitrary(100, 200); i++) {
+    // random color
     gl.uniform4f(
       colorUniformLocation,
       Math.random(),
@@ -104,20 +88,25 @@ window.onload = function () {
       1
     );
 
-    var x = getRandomArbitrary(-1, 1);
-    var width = getRandomArbitrary(-1, 1);
-    var y = getRandomArbitrary(-1, 1);
-    var height = getRandomArbitrary(-1, 1);
+    // random position 랜덤 좌표
+    var x = getRandomArbitrary(-2, 2);
+    var width = getRandomArbitrary(-2, 2);
+    var y = getRandomArbitrary(-2, 2);
+    var height = getRandomArbitrary(-2, 2);
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([
         x,
         y,
-        x + width,
-        y,
         x,
         y + height,
         x + width,
+        y,
+        x + width,
+        y + height,
+        x + width,
+        y,
+        x,
         y + height,
       ]),
       gl.STATIC_DRAW
@@ -167,8 +156,7 @@ function draw(gl) {
   var primitiveType = gl.TRIANGLES;
   var offset = 0;
   var count = 6;
-  var indexType = gl.UNSIGNED_SHORT;
-  gl.drawElements(primitiveType, count, indexType, offset);
+  gl.drawArrays(primitiveType, offset, count);
 }
 
 function getRandomArbitrary(min, max) {
