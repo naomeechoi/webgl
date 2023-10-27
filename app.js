@@ -1,6 +1,8 @@
 window.onload = function () {
   console.log("This is working");
   var canvas = document.getElementById("game-surface");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
   var gl = canvas.getContext("webgl");
 
   if (!gl) {
@@ -13,7 +15,7 @@ window.onload = function () {
   }
 
   // draw background, 배경그리기
-  gl.clearColor(0.6, 0.2, 0.3, 1.0);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // bring glsl text source, glsl 텍스트 소스 가져오기
@@ -31,27 +33,36 @@ window.onload = function () {
   // make program, 프로그램 만들기
   var program = createProgram(gl, vertexShader, fragmentShader);
 
-  // triangle vertex positions, 삼각형 점의 위치
-  var trianglePositions = [
-    -0.5, 0.0, 1.0, 1.0, 0.0, 0.5, 0.0, 0.0, 1.0, 1.0, 0.5, 0.5, 0.0, 1.0, 0.0,
-    0.5, 0.5, 1.0, 1.0, 0.0, -0.5, 0.5, 0.0, 1.0, 1.0, -0.5, 0.0, 0.0, 1.0, 0.0,
-  ];
-
   // create and bind buffer, and add buffer data, 버퍼 생성 바인드 및 데이터 구성
   var positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  // triangle vertex positions, 삼각형 점의 위치
+
+  const indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  const indices = [
+    0,
+    1,
+    2, // first triangle
+    2,
+    1,
+    3, // second triangle
+  ];
   gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array(trianglePositions),
+    gl.ELEMENT_ARRAY_BUFFER,
+    new Uint16Array(indices),
     gl.STATIC_DRAW
   );
 
-  // make 'vertPosition' work
+  // look up locations
   var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+  var matrixLocation = gl.getUniformLocation(program, "u_matrix");
+  var colorUniformLocation = gl.getUniformLocation(program, "u_color");
+
   var vertSize = 2;
   var type = gl.FLOAT;
   var normalize = gl.FALSE;
-  var stride = 5 * Float32Array.BYTES_PER_ELEMENT;
+  var stride = 0;
   var vertOffset = 0;
 
   // This method binds the buffer currently bound to gl.ARRAY_BUFFER
@@ -70,38 +81,51 @@ window.onload = function () {
   );
   gl.enableVertexAttribArray(positionAttributeLocation);
 
-  // make 'vertColor' work
-  var colorAttributeLocation = gl.getAttribLocation(program, "v_color");
-  var colorSize = 3;
-  var colorOffset = 2 * Float32Array.BYTES_PER_ELEMENT;
-  gl.vertexAttribPointer(
-    colorAttributeLocation,
-    colorSize,
-    type,
-    normalize,
-    stride,
-    colorOffset
-  );
-  gl.enableVertexAttribArray(colorAttributeLocation);
-
   // compute the matrix
   // 캔버스 크기를 투영한 행렬을 가지고
   // 위치 * 회전 * 크기 변환
-  var matrixLocation = gl.getUniformLocation(program, "u_matrix");
   var matrix = m3.projection(gl.canvas.clientWidth, gl.canvas.clientHeight);
   matrix = m3.translate(
     matrix,
     gl.canvas.clientWidth / 2,
-    gl.canvas.clientHeight / 2 - gl.canvas.clientHeight / 8
+    gl.canvas.clientHeight / 2
   );
-  console.log(gl.canvas.clientHeight / 2);
   matrix = m3.rotate(matrix, 0);
   matrix = m3.scale(matrix, 300, 300);
 
   gl.uniformMatrix3fv(matrixLocation, false, matrix);
 
-  // draw
-  draw(gl);
+  for (var i = 0; i < getRandomArbitrary(100, 500); i++) {
+    gl.uniform4f(
+      colorUniformLocation,
+      Math.random(),
+      Math.random(),
+      Math.random(),
+      1
+    );
+
+    var x = getRandomArbitrary(-1, 1);
+    var width = getRandomArbitrary(-1, 1);
+    var y = getRandomArbitrary(-1, 1);
+    var height = getRandomArbitrary(-1, 1);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        x,
+        y,
+        x + width,
+        y,
+        x,
+        y + height,
+        x + width,
+        y + height,
+      ]),
+      gl.STATIC_DRAW
+    );
+
+    // draw
+    draw(gl);
+  }
 };
 
 function createShader(gl, type, source) {
@@ -143,5 +167,10 @@ function draw(gl) {
   var primitiveType = gl.TRIANGLES;
   var offset = 0;
   var count = 6;
-  gl.drawArrays(primitiveType, offset, count);
+  var indexType = gl.UNSIGNED_SHORT;
+  gl.drawElements(primitiveType, count, indexType, offset);
+}
+
+function getRandomArbitrary(min, max) {
+  return Math.random() * (max - min) + min;
 }
